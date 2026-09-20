@@ -47,7 +47,7 @@ const DB_CONFIG = {
   host: "127.0.0.1",
   port: 3306,
   user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "your-password-here",
+  password: process.env.DB_PASSWORD || "martina 555",
   database: "sakila",
 };
 
@@ -603,4 +603,4 @@ async function main() {
 main().catch((err) => {
   console.error("Generation failed:", err);
   process.exit(1);
-})
+});
