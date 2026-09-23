@@ -82,13 +82,6 @@ const CONFIG = {
   dailyRateMax: 4.99,
 };
 
-// The three triggers that ship with Sakila (they overwrite our dates with NOW()).
-const DATE_TRIGGERS = [
-  { name: "customer_create_date", table: "customer", body: "SET NEW.create_date = NOW()" },
-  { name: "payment_date", table: "payment", body: "SET NEW.payment_date = NOW()" },
-  { name: "rental_date", table: "rental", body: "SET NEW.rental_date = NOW()" },
-];
-
 // ID columns that must be able to hold our new, bigger numbers, grouped by table.
 const WIDEN_COLUMNS = [
   { table: "staff", columns: ["staff_id", "store_id"] },
@@ -386,10 +379,7 @@ async function main() {
   // ---------------------------------------------------------
   // 2. Drop the triggers that would overwrite our dates
   // ---------------------------------------------------------
-  out.write("-- Step 2: drop the triggers that overwrite create_date / rental_date / payment_date\n");
-  for (const t of DATE_TRIGGERS) out.write(`DROP TRIGGER IF EXISTS ${t.name};\n`);
-  out.write("\n-- Step 3: load the data\nSET AUTOCOMMIT=0;\n\n");
-
+  out.write("-- Load the data\nSET AUTOCOMMIT=0;\n\n");
   // ---------------------------------------------------------
   // 3. STAFF: one manager per new store. Each one starts out pointing at
   //    existing store 1 (valid), and is repointed after the stores exist.
@@ -573,14 +563,6 @@ async function main() {
   await paymentWriter.flush();
 
   out.write("COMMIT;\nSET AUTOCOMMIT=1;\n\n");
-
-  // ---------------------------------------------------------
-  // 7. Put the triggers back exactly as Sakila defines them
-  // ---------------------------------------------------------
-  out.write("-- Step 4: re-create the triggers we dropped\n");
-  for (const t of DATE_TRIGGERS) {
-    out.write(`CREATE TRIGGER ${t.name} BEFORE INSERT ON ${t.table} FOR EACH ROW ${t.body};\n`);
-  }
 
   out.end();
   await once(out, "finish");
